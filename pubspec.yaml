@@ -1,0 +1,24 @@
+name: flutter_ble_connection_manager
+description: >-
+  A production-grade BLE connection lifecycle manager built on top of
+  flutter_blue_plus. Moves a BLE device from Disconnected to Application
+  Ready in a predictable, observable and recoverable way.
+version: 0.1.0
+homepage: https://github.com/nguyenvhien/flutter_ble_connection_manager
+repository: https://github.com/nguyenvhien/flutter_ble_connection_manager
+
+environment:
+  sdk: ^3.4.0
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_blue_plus: ^1.32.0
+  meta: ^1.11.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^5.0.0
+  mocktail: ^1.0.4
