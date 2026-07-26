@@ -32,7 +32,7 @@ class FleetManager {
     final manager = BleConnectionManager(
       device: device,
       config: ConnectionConfig(
-        timeout: const Duration(seconds: 15),
+        connectionTimeout: const Duration(seconds: 15),
         recoveryPolicy: const RecoveryPolicy.exponentialBackoff(maxAttempts: 3),
         onSetup: (device, token) async {
           // Setup logic specific to this device...

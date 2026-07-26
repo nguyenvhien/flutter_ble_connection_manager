@@ -5,71 +5,52 @@
 [![CI](https://github.com/nguyenvhien/flutter_ble_connection_manager/actions/workflows/ci.yml/badge.svg)](https://github.com/nguyenvhien/flutter_ble_connection_manager/actions)
 [![Coverage](https://codecov.io/gh/nguyenvhien/flutter_ble_connection_manager/branch/main/graph/badge.svg)](https://codecov.io/gh/nguyenvhien/flutter_ble_connection_manager)
 
-A production-grade BLE connection lifecycle manager built on top of `flutter_blue_plus`.
+A Flutter package that manages the complete BLE connection lifecycle on top of `flutter_blue_plus`.
 
-## Why This Package Exists
+## Why
 
-Most production BLE applications eventually implement the same connection management logic. Instead of rewriting that logic for every project, this package provides a reusable lifecycle manager.
+Handling Bluetooth Low Energy (BLE) connections in mobile applications is difficult. A successful radio connection does not mean the device is ready to use. Applications must handle timeouts, discover services, enable notifications, manage race conditions (e.g., users repeatedly pressing "Connect"), and recover from unexpected disconnections.
 
-Managing BLE connections in mobile apps is notoriously difficult. Applications often struggle with race conditions when users repeatedly press "Connect", unhandled edge cases during service discovery, and complex reconnection logic when devices unexpectedly drop.
+Most production BLE applications eventually implement the same connection management logic. This package extracts that logic into a reusable component.
 
-This package provides a structured, observable, and resilient lifecycle manager to transition a BLE device from Disconnected to Application Ready.
+Instead of scattering `try/catch` blocks and state management across your UI, this package provides a structured, observable lifecycle manager.
 
-## Architecture Overview
+## Solution
+
+`flutter_ble_connection_manager` provides a single facade that handles the connection lifecycle, concurrent operation serialization, and recovery logic. It complements `flutter_blue_plus` by managing *how* the connection is maintained, while leaving the actual BLE transport to the underlying library.
+
+## Architecture
 
 ```text
 Flutter App
         │
         ▼
-flutter_ble_connection_manager
+flutter_ble_connection_manager  (Lifecycle, Retry, Serialization, State)
         │
         ▼
-flutter_blue_plus
+flutter_blue_plus               (Scanning, Services, Characteristics, Transport)
         │
         ▼
 Android / iOS BLE
 ```
 
-## Why not just use flutter_blue_plus?
-
-`flutter_blue_plus` is an excellent BLE transport library. However, production applications often need additional connection lifecycle management such as retry strategies, lifecycle serialization, timeout handling and connection readiness. This package complements `flutter_blue_plus` rather than replacing it.
-
 ## Responsibilities
 
-This package focuses strictly on connection lifecycle management:
-- Connection lifecycle
-- Connection state machine
-- Retry & reconnection
-- Timeout management
-- Lifecycle serialization
-- Connection readiness
-- Lifecycle events
-- Structured errors
+This package manages:
+- **Strict Lifecycle State Machine**: Enforces `disconnected`, `connecting`, `ready`, and `disconnecting`.
+- **Concurrency Serialization**: Automatically deduplicates concurrent `connect()` requests and queues `disconnect()` requests to prevent race conditions.
+- **Retry & Recovery**: Built-in exponential backoff for handling transient failures.
+- **Cancellation**: Gracefully aborts in-flight connection attempts.
+- **Lifecycle Events**: Detailed event stream broadcasting every milestone, retry, or failure.
 
 ## Non-goals
 
-This package is **NOT** a general-purpose BLE library and does not replace `flutter_blue_plus`.
-
+This package is **NOT** a general-purpose BLE library. It does not replace `flutter_blue_plus`. 
 `flutter_blue_plus` remains fully responsible for:
-- Scanning and discovering devices
-- Reading and writing characteristics
-- Subscribing to notifications
-- Descriptors management
-- Raw BLE transport
-
-## Features
-
-### Implemented
-- **Lifecycle State Machine**: Strictly enforces states (`disconnected`, `connecting`, `ready`, `disconnecting`).
-- **Retry Scheduler**: Built-in exponential backoff for handling transient connection failures.
-- **Lifecycle Serialization**: Automatically deduplicates concurrent `connect()` or `disconnect()` calls.
-- **Cancellation**: Allows in-flight connection attempts to be gracefully aborted.
-- **Typed Exceptions**: Wraps unpredictable BLE errors into predictable exceptions.
-
-### Design Principles
-- **Minimal Public API**: Intentionally small surface area.
-- **Predictable Lifecycle**: Expose strict states and explicit errors instead of silently swallowing failures.
-- **Composition over Inheritance**: Designed to compose cleanly with `flutter_blue_plus`.
+- Scanning for devices.
+- Reading and writing characteristics.
+- Subscribing to notifications.
+- Descriptors management.
 
 ## Installation
 
@@ -84,62 +65,88 @@ dependencies:
 ## Quick Start
 
 ```dart
+// 1. Initialize the manager for a specific device
 final manager = BleConnectionManager(
   device: myBluetoothDevice,
   config: ConnectionConfig(
     timeout: const Duration(seconds: 15),
     recoveryPolicy: RecoveryPolicy.exponentialBackoff(maxAttempts: 3),
-    onSetup: (device, token) async {
-      // Define what "Ready" means for your app.
-      final services = device.servicesList;
-      final char = services.first.characteristics.first;
-      await char.setNotifyValue(true);
-      token.throwIfCancelled();
-    },
   ),
 );
 
-// connect() completes ONLY when the device is Application Ready —
-// not just BLE-connected.
+// 2. Await the connection. It ONLY resolves when fully ready.
 await manager.connect();
 
-// The device is ready. Use flutter_blue_plus directly.
-await manager.disconnect();
-await manager.dispose();
+// 3. The device is now ready. Use flutter_blue_plus directly.
+await characteristic.write([0x01]);
 ```
 
-See [`example/`](example/) for complete usage patterns.
+## Lifecycle Model
+
+Vanilla BLE libraries typically stop at the `Connected` state. This package enforces a strict progression:
+
+`Disconnected` → `Connecting` → `Native BLE Connected` → `Setup (App Config)` → **`Ready`**
+
+The `connect()` method does not resolve until the device successfully completes the entire progression and reaches the `Ready` state. 
 
 ## Core Concepts
 
-- **BleConnectionManager**: The central facade managing a single `BluetoothDevice`. You should instantiate one manager per device.
-- **BleConnectionState**: A strictly enforced state machine (`disconnected`, `connecting`, `ready`, `disconnecting`).
-- **BleLifecycleEvent**: A detailed event stream containing milestones (e.g., `ConnectionAttemptStarted`, `RetryScheduled`, `Disconnected`).
-- **RecoveryPolicy**: Determines if and how a failed connection attempt should be retried.
-- **Concurrent Operations**: Concurrent lifecycle operations are automatically serialized to prevent race conditions.
+### The `onSetup` Callback
+The `onSetup` block is where you define what makes a device "Ready" for your specific application. It executes immediately after the native connection succeeds. This is the optimal place to discover services, negotiate MTU, and subscribe to required notifications.
 
-## Project Philosophy
+```dart
+final manager = BleConnectionManager(
+  device: device,
+  config: ConnectionConfig(
+    onSetup: (device, token) async {
+      // 1. Discover services using flutter_blue_plus
+      final services = await device.discoverServices();
+      
+      // 2. Check for cancellation (e.g., user tapped "Disconnect" mid-setup)
+      token.throwIfCancelled(); 
+      
+      // 3. Enable notifications
+      final myChar = _findCharacteristic(services);
+      await myChar.setNotifyValue(true);
+    },
+  ),
+);
+```
 
-- **Small Surface Area**: The public API is intentionally minimal.
-- **Single Responsibility**: Manage the connection. Nothing else.
-- **Predictability Over Magic**: Expose strict states and explicit errors instead of silently swallowing failures.
-- **Domain-Driven Architecture**: The internal package structure reflects the developer's mental model (`connection`, `lifecycle`, `recovery`, `infrastructure`, `errors`).
+If anything within `onSetup` fails, the manager's `RecoveryPolicy` will automatically retry the entire connection flow.
 
-## Current Status
+## API Overview
 
-- Core state machine and lifecycle events are implemented.
-- Lifecycle serialization (race condition prevention) is implemented.
-- Recovery policies and retry scheduler are implemented.
-- Core unit tests are in place. Continuous integration validates formatting, analysis and test execution.
+| Class                | Responsibility      |
+| -------------------- | ------------------- |
+| `BleConnectionManager` | Main entry point    |
+| `ConnectionConfig`     | Configure lifecycle |
+| `RecoveryPolicy`       | Retry behavior      |
+| `BleLifecycleEvent`    | Event stream        |
+| `BleConnectionState`   | State stream        |
+
+## FAQ
+
+### Does this package replace flutter_blue_plus?
+
+No. `flutter_blue_plus` remains responsible for scanning, characteristic operations, and BLE transport. This package only manages the connection lifecycle.
+
+### Can I manage multiple devices?
+
+Yes. Create one `BleConnectionManager` per `BluetoothDevice`.
+
+## Example App
+
+The `example/` folder in this repository serves as **Executable Documentation**. Run it to see interactive demonstrations of:
+- **Quick Start:** A basic connection flow.
+- **Lifecycle Walkthrough:** A visual timeline of the exact states the manager progresses through.
+- **API Reference:** Detailed in-app explanations of the core classes.
 
 ## Roadmap
 
-Upcoming:
-- Structured logging
-- Heartbeat extension
-- RSSI monitoring
-- OTA extension points
-- Stable public API
+- Structured logging.
+- Heartbeat extension (application-level ping).
+- RSSI monitoring.
 
 ## Contributing
 
