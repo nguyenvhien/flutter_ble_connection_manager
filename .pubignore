@@ -1,0 +1,9 @@
+# Explicitly ignore files for pub.dev to bypass .gitignore conflicts
+.github/
+.vscode/
+.idea/
+.dart_tool/
+build/
+coverage/
+.gitignore
+.git/

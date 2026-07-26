@@ -173,7 +173,7 @@ The `example/` folder in this repository serves as **Executable Documentation**.
 
 ## Contributing
 
-Contributions are welcome. Please read `docs/ARCHITECTURE.md` before proposing architectural changes.
+Contributions are welcome. Please read `doc/ARCHITECTURE.md` before proposing architectural changes.
 
 ## License
 

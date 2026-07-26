@@ -3,6 +3,5 @@ build/
 .idea/
 dart
 flutter
-example/
 .flutter-plugins-dependencies
 .symlinks/
