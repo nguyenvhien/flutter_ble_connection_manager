@@ -6,11 +6,7 @@ class SessionStatusCard extends StatelessWidget {
   final BleConnectionState state;
   final String? lastError;
 
-  const SessionStatusCard({
-    super.key,
-    required this.state,
-    this.lastError,
-  });
+  const SessionStatusCard({super.key, required this.state, this.lastError});
 
   @override
   Widget build(BuildContext context) {
@@ -39,7 +35,9 @@ class SessionStatusCard extends StatelessWidget {
           _buildMetricRow(
             'Last Error',
             lastError ?? 'None',
-            valueColor: lastError != null ? AppColors.error : AppColors.textMuted,
+            valueColor: lastError != null
+                ? AppColors.error
+                : AppColors.textMuted,
           ),
         ],
       ),

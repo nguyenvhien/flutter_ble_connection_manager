@@ -104,7 +104,9 @@ class _EventConsoleState extends State<EventConsole> {
               itemBuilder: (context, index) {
                 final log = _logs[index];
                 return Padding(
-                  padding: const EdgeInsets.only(bottom: AppDimensions.spacingSmall),
+                  padding: const EdgeInsets.only(
+                    bottom: AppDimensions.spacingSmall,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

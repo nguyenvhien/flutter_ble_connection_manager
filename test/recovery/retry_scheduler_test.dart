@@ -140,8 +140,8 @@ void main() {
       }
 
       expect(failures, [
-        (1, true),  // attempt 1 failed, will retry
-        (2, true),  // attempt 2 failed, will retry
+        (1, true), // attempt 1 failed, will retry
+        (2, true), // attempt 2 failed, will retry
         (3, false), // attempt 3 failed, no more retries
       ]);
     });
@@ -166,6 +166,37 @@ void main() {
       }
 
       expect(callCount, 1);
+    });
+
+    test('can be cancelled during execution', () async {
+      var callCount = 0;
+      final scheduler = RetryScheduler(
+        policy: const RecoveryPolicy.exponentialBackoff(maxAttempts: 10),
+      );
+
+      final future = scheduler.execute(
+        action: (_) async {
+          callCount++;
+          // Simulate work that takes time
+          await Future.delayed(const Duration(milliseconds: 50));
+          throw Exception('fail');
+        },
+        onRetryScheduled: (_, __) {},
+        onAttemptFailed: (_, __, ___) {},
+      );
+
+      // Cancel it shortly after it starts
+      await Future.delayed(const Duration(milliseconds: 20));
+      scheduler.cancel();
+
+      try {
+        await future;
+      } catch (_) {
+        // The active delay or action will be interrupted/aborted eventually
+      }
+
+      // Should not reach 10 attempts
+      expect(callCount, lessThan(10));
     });
   });
 }

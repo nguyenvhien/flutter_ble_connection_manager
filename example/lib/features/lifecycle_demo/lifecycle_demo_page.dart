@@ -27,9 +27,7 @@ class _LifecycleDemoPageState extends State<LifecycleDemoPage> {
 
   void _initManager() {
     if (widget.device is MockBluetoothDevice) {
-      _manager = MockBleConnectionManager(
-        device: widget.device,
-      );
+      _manager = MockBleConnectionManager(device: widget.device);
     } else {
       _manager = BleConnectionManager(
         device: widget.device,
@@ -40,7 +38,7 @@ class _LifecycleDemoPageState extends State<LifecycleDemoPage> {
             // 1. Discover Services (Real world requirement)
             await device.discoverServices();
             token.throwIfCancelled();
-            
+
             // 2. Simulated Delay for Demo Purposes
             // This allows you to visually see the "Setup" phase on the timeline
             // before it transitions to "Ready".
@@ -76,23 +74,29 @@ class _LifecycleDemoPageState extends State<LifecycleDemoPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Device: ${widget.device.advName}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-          const SizedBox(height: 24),
-          TimelineWidget(
-            events: _manager.events,
-            currentState: _currentState,
+          Text(
+            'Device: ${widget.device.advName}',
+            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           ),
+          const SizedBox(height: 24),
+          TimelineWidget(events: _manager.events, currentState: _currentState),
           const Spacer(),
           ElevatedButton(
             onPressed: _currentState == BleConnectionState.disconnected
                 ? () => _manager.connect()
-                : (_currentState == BleConnectionState.ready ? () => _manager.disconnect() : null),
+                : (_currentState == BleConnectionState.ready
+                      ? () => _manager.disconnect()
+                      : null),
             style: ElevatedButton.styleFrom(
               padding: const EdgeInsets.all(16),
-              backgroundColor: _currentState == BleConnectionState.disconnected ? Colors.green : Colors.red,
+              backgroundColor: _currentState == BleConnectionState.disconnected
+                  ? Colors.green
+                  : Colors.red,
             ),
             child: Text(
-              _currentState == BleConnectionState.disconnected ? 'Start Connection' : 'Disconnect',
+              _currentState == BleConnectionState.disconnected
+                  ? 'Start Connection'
+                  : 'Disconnect',
               style: const TextStyle(fontSize: 18),
             ),
           ),

@@ -27,7 +27,10 @@ class _HomePageState extends State<HomePage> {
             padding: EdgeInsets.only(bottom: AppDimensions.spacingMedium),
             child: Text(
               'Production BLE Lifecycle Playground',
-              style: TextStyle(color: AppColors.textMuted, fontSize: AppDimensions.fontMedium),
+              style: TextStyle(
+                color: AppColors.textMuted,
+                fontSize: AppDimensions.fontMedium,
+              ),
             ),
           ),
         ),
@@ -40,20 +43,29 @@ class _HomePageState extends State<HomePage> {
             decoration: BoxDecoration(
               color: AppColors.highlight.withAlpha(25), // ~0.1 opacity
               borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
-              border: Border.all(color: AppColors.highlight.withAlpha(76)), // ~0.3 opacity
+              border: Border.all(
+                color: AppColors.highlight.withAlpha(76),
+              ), // ~0.3 opacity
             ),
             child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   '💡 Executable Documentation',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: AppColors.highlight),
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.highlight,
+                  ),
                 ),
                 SizedBox(height: 4),
                 Text(
                   'This application is not a complete BLE app, but rather an interactive playground. '
                   'Each section below demonstrates a core concept of the library in isolation.',
-                  style: TextStyle(color: AppColors.textSecondary, height: 1.4, fontSize: 13),
+                  style: TextStyle(
+                    color: AppColors.textSecondary,
+                    height: 1.4,
+                    fontSize: 13,
+                  ),
                 ),
               ],
             ),
@@ -64,7 +76,10 @@ class _HomePageState extends State<HomePage> {
             borderRadius: BorderRadius.circular(AppDimensions.radiusMedium),
             child: SwitchListTile(
               title: const Text('Enable Mock Mode (Simulator)'),
-              subtitle: const Text('Uses mock devices. No BLE hardware required.', style: TextStyle(fontSize: 12)),
+              subtitle: const Text(
+                'Uses mock devices. No BLE hardware required.',
+                style: TextStyle(fontSize: 12),
+              ),
               value: _isMockMode,
               activeThumbColor: AppColors.highlight,
               shape: RoundedRectangleBorder(
@@ -86,7 +101,12 @@ class _HomePageState extends State<HomePage> {
             title: 'Quick Start',
             subtitle: 'Learn the API in 5 minutes.',
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => ConnectionDemoPage(isMockMode: _isMockMode)));
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ConnectionDemoPage(isMockMode: _isMockMode),
+                ),
+              );
             },
           ),
           const SizedBox(height: AppDimensions.spacingMedium),
@@ -97,7 +117,7 @@ class _HomePageState extends State<HomePage> {
             title: 'Lifecycle Walkthrough',
             subtitle: 'Understand why Ready is different from Connected.',
             onTap: () => _navigateToFeature(
-              context, 
+              context,
               (device) => LifecycleDemoPage(device: device),
             ),
           ),
@@ -109,7 +129,10 @@ class _HomePageState extends State<HomePage> {
             title: 'API Reference',
             subtitle: 'Core classes and mental model.',
             onTap: () {
-              Navigator.push(context, MaterialPageRoute(builder: (_) => const ApiReferencePage()));
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ApiReferencePage()),
+              );
             },
           ),
         ],
@@ -117,17 +140,28 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  void _navigateToFeature(BuildContext context, Widget Function(dynamic device) pageBuilder) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => Scaffold(
-      appBar: AppBar(title: const Text('Select Device')),
-      body: DeviceSelector(
-        isMockMode: _isMockMode,
-        onDeviceSelected: (device) {
-          // Push the demo page on top of the selector so the user can go back to it
-          Navigator.push(context, MaterialPageRoute(builder: (_) => pageBuilder(device)));
-        },
+  void _navigateToFeature(
+    BuildContext context,
+    Widget Function(dynamic device) pageBuilder,
+  ) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          appBar: AppBar(title: const Text('Select Device')),
+          body: DeviceSelector(
+            isMockMode: _isMockMode,
+            onDeviceSelected: (device) {
+              // Push the demo page on top of the selector so the user can go back to it
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => pageBuilder(device)),
+              );
+            },
+          ),
+        ),
       ),
-    )));
+    );
   }
 
   Widget _buildDemoCard(
@@ -147,8 +181,14 @@ class _HomePageState extends State<HomePage> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(AppDimensions.spacingMedium),
         leading: Icon(icon, size: 40, color: iconColor),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
-        subtitle: Text(subtitle, style: const TextStyle(color: AppColors.textSecondary)),
+        title: Text(
+          title,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+        ),
+        subtitle: Text(
+          subtitle,
+          style: const TextStyle(color: AppColors.textSecondary),
+        ),
         trailing: const Icon(Icons.chevron_right, color: AppColors.textMuted),
         onTap: onTap,
       ),

@@ -109,7 +109,17 @@ class BleConnectionManager {
   ///
   /// Emits whenever the state transitions. The stream is broadcast —
   /// multiple listeners are supported.
-  Stream<BleConnectionState> get stateStream => _stateController.stream;
+  Stream<BleConnectionState> get stateStream {
+    final controller = StreamController<BleConnectionState>(sync: true);
+    controller.add(_state);
+    final sub = _stateController.stream.listen(
+      controller.add,
+      onError: controller.addError,
+      onDone: controller.close,
+    );
+    controller.onCancel = sub.cancel;
+    return controller.stream;
+  }
 
   /// Stream of granular lifecycle events.
   ///
@@ -158,8 +168,15 @@ class BleConnectionManager {
       return Future.value();
     }
 
-    return _serializer.runDeduped(
-        'disconnect', () => _executeDisconnect(BleDisconnectReason.userInitiated));
+    // CRITICAL: Cancel active operations immediately to break deadlocks (reentrancy)
+    // If disconnect is called from inside an onSetup callback, waiting for the
+    // serializer would cause a deadlock. By cancelling first, the active operation
+    // fails and releases the serializer lock.
+    _activeCancellationToken?.cancel();
+    _activeRetryScheduler?.cancel();
+
+    return _serializer.runDeduped('disconnect',
+        () => _executeDisconnect(BleDisconnectReason.userInitiated));
   }
 
   /// Release all resources.
@@ -375,7 +392,9 @@ class BleConnectionManager {
     if (_config.autoReconnect && !_disposed) {
       _emitEvent(ReconnectionStarted());
       // Trigger reconnection through the serializer
-      _serializer.runDeduped('connect', () => _executeConnect()).catchError((_) {
+      _serializer
+          .runDeduped('connect', () => _executeConnect())
+          .catchError((_) {
         // Reconnection failed — already in disconnected state
       });
     }

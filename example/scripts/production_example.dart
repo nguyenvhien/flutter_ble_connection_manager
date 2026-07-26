@@ -24,7 +24,10 @@ import 'package:flutter_ble_connection_manager/flutter_ble_connection_manager.da
 /// The [token] enables cooperative cancellation — if the user taps
 /// "Disconnect" while setup is running, the manager cancels the token
 /// and setup exits cleanly.
-Future<void> deviceSetup(BluetoothDevice device, CancellationToken token) async {
+Future<void> deviceSetup(
+  BluetoothDevice device,
+  CancellationToken token,
+) async {
   // Step 1: Services are already discovered (autoDiscoverServices: true).
   final services = device.servicesList;
 

@@ -89,23 +89,63 @@ class _TimelineWidgetState extends State<TimelineWidget> {
         children: [
           const Text(
             'CONNECTION LIFECYCLE',
-            style: TextStyle(color: AppColors.textMuted, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+            style: TextStyle(
+              color: AppColors.textMuted,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
           ),
           const SizedBox(height: AppDimensions.spacingMedium),
-          _buildStep(0, 'Disconnected', 'No active connection.', Icons.power_off),
-          _buildStep(1, 'Connecting', 'Application called manager.connect()', Icons.settings_ethernet),
-          _buildStep(2, 'Native Connected', 'BLE Link Established', Icons.bluetooth_connected),
-          _buildStep(3, 'Running Setup', 'Discovering services & configuring...', Icons.build),
-          _buildStep(4, 'Ready', 'Application can now safely use the device.', Icons.check_circle, isLast: true),
+          _buildStep(
+            0,
+            'Disconnected',
+            'No active connection.',
+            Icons.power_off,
+          ),
+          _buildStep(
+            1,
+            'Connecting',
+            'Application called manager.connect()',
+            Icons.settings_ethernet,
+          ),
+          _buildStep(
+            2,
+            'Native Connected',
+            'BLE Link Established',
+            Icons.bluetooth_connected,
+          ),
+          _buildStep(
+            3,
+            'Running Setup',
+            'Discovering services & configuring...',
+            Icons.build,
+          ),
+          _buildStep(
+            4,
+            'Ready',
+            'Application can now safely use the device.',
+            Icons.check_circle,
+            isLast: true,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildStep(int stepIndex, String title, String subtitle, IconData icon, {bool isLast = false}) {
+  Widget _buildStep(
+    int stepIndex,
+    String title,
+    String subtitle,
+    IconData icon, {
+    bool isLast = false,
+  }) {
     final isActive = _currentStep == stepIndex;
     final isCompleted = _currentStep > stepIndex;
-    final color = isActive ? AppColors.info : (isCompleted ? AppColors.successDark : AppColors.textMuted.withValues(alpha: 0.5));
+    final color = isActive
+        ? AppColors.info
+        : (isCompleted
+              ? AppColors.successDark
+              : AppColors.textMuted.withValues(alpha: 0.5));
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,7 +165,9 @@ class _TimelineWidgetState extends State<TimelineWidget> {
               Container(
                 width: 2,
                 height: 40,
-                color: isCompleted ? AppColors.successDark : AppColors.textMuted.withValues(alpha: 0.3),
+                color: isCompleted
+                    ? AppColors.successDark
+                    : AppColors.textMuted.withValues(alpha: 0.3),
               ),
           ],
         ),
@@ -138,7 +180,9 @@ class _TimelineWidgetState extends State<TimelineWidget> {
               Text(
                 title,
                 style: TextStyle(
-                  color: isActive || isCompleted ? AppColors.textPrimary : AppColors.textMuted,
+                  color: isActive || isCompleted
+                      ? AppColors.textPrimary
+                      : AppColors.textMuted,
                   fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
                   fontSize: AppDimensions.fontLarge,
                 ),
@@ -146,7 +190,9 @@ class _TimelineWidgetState extends State<TimelineWidget> {
               Text(
                 subtitle,
                 style: TextStyle(
-                  color: isActive || isCompleted ? AppColors.textSecondary : AppColors.textMuted,
+                  color: isActive || isCompleted
+                      ? AppColors.textSecondary
+                      : AppColors.textMuted,
                   fontSize: AppDimensions.fontSmall,
                 ),
               ),
@@ -157,4 +203,3 @@ class _TimelineWidgetState extends State<TimelineWidget> {
     );
   }
 }
-

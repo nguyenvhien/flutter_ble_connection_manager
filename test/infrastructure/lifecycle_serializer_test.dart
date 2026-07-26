@@ -89,5 +89,17 @@ void main() {
       expect(identical(future1, future2), false);
       await Future.wait([future1, future2]);
     });
+
+    test('detects and throws on reentrancy (deadlock prevention)', () async {
+      final serializer = LifecycleSerializer();
+
+      await expectLater(
+        serializer.runDeduped('connect', () async {
+          // Attempting to run another operation inside an active operation
+          await serializer.runDeduped('disconnect', () async {});
+        }),
+        throwsStateError,
+      );
+    });
   });
 }

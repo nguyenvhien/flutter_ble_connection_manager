@@ -7,11 +7,11 @@ class AppColors {
   static const Color surface = Color(0xFF1E1E1E);
   static const Color surfaceHighlight = Color(0xFF2D2D2D);
   static const Color consoleBackground = Colors.black;
-  
+
   // Borders
   static const Color border = Colors.white10;
   static const Color borderHighlight = Colors.white24;
-  
+
   // Text
   static const Color textPrimary = Colors.white;
   static const Color textSecondary = Colors.white70;
@@ -33,11 +33,11 @@ class AppDimensions {
   static const double spacingSmall = 8.0;
   static const double spacingMedium = 16.0;
   static const double spacingLarge = 24.0;
-  
+
   // Border Radius
   static const double radiusSmall = 8.0;
   static const double radiusMedium = 12.0;
-  
+
   // Font Sizes
   static const double fontSmall = 12.0;
   static const double fontMedium = 14.0;
