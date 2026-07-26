@@ -21,7 +21,7 @@ class _ConnectionDemoPageState extends State<ConnectionDemoPage> {
   bool _isScanning = false;
   final List<fbp.BluetoothDevice> _discoveredDevices = [];
   StreamSubscription? _scanSub;
-  
+
   // The heart of Multi-Device connection: holding managers for multiple devices
   final Map<String, BleConnectionManager> _managers = {};
 
@@ -45,11 +45,26 @@ class _ConnectionDemoPageState extends State<ConnectionDemoPage> {
         setState(() {
           _isScanning = false;
           _discoveredDevices.addAll([
-            MockBluetoothDevice(const fbp.DeviceIdentifier('00:1A:7D:DA:71:13'), 'Smart Thermostat V2'),
-            MockBluetoothDevice(const fbp.DeviceIdentifier('F4:5E:AB:12:34:56'), 'Fitness Tracker Pro'),
-            MockBluetoothDevice(const fbp.DeviceIdentifier('08:D1:F9:C3:4A:2B'), 'Bluetooth Speaker X1'),
-            MockBluetoothDevice(const fbp.DeviceIdentifier('9C:F3:87:A1:B2:C3'), 'Heart Rate Monitor'),
-            MockBluetoothDevice(const fbp.DeviceIdentifier('A4:C1:38:F4:D5:E6'), 'Smart Lock Alpha'),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('00:1A:7D:DA:71:13'),
+              'Smart Thermostat V2',
+            ),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('F4:5E:AB:12:34:56'),
+              'Fitness Tracker Pro',
+            ),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('08:D1:F9:C3:4A:2B'),
+              'Bluetooth Speaker X1',
+            ),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('9C:F3:87:A1:B2:C3'),
+              'Heart Rate Monitor',
+            ),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('A4:C1:38:F4:D5:E6'),
+              'Smart Lock Alpha',
+            ),
           ]);
         });
       });
@@ -67,17 +82,21 @@ class _ConnectionDemoPageState extends State<ConnectionDemoPage> {
       _isScanning = true;
       _discoveredDevices.clear();
     });
-    
+
     _scanSub = fbp.FlutterBluePlus.scanResults.listen((results) {
       if (!mounted) return;
       setState(() {
         _discoveredDevices.clear();
-        _discoveredDevices.addAll(results.where((r) => r.device.advName.isNotEmpty).map((r) => r.device));
+        _discoveredDevices.addAll(
+          results
+              .where((r) => r.device.advName.isNotEmpty)
+              .map((r) => r.device),
+        );
       });
     });
 
     await fbp.FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
-    
+
     if (mounted) {
       setState(() {
         _isScanning = false;
@@ -94,7 +113,7 @@ class _ConnectionDemoPageState extends State<ConnectionDemoPage> {
       });
     }
   }
-  
+
   BleConnectionManager _getOrCreateManager(fbp.BluetoothDevice device) {
     if (!_managers.containsKey(device.remoteId.str)) {
       if (widget.isMockMode) {
@@ -147,16 +166,16 @@ class _ConnectionDemoPageState extends State<ConnectionDemoPage> {
         padding: const EdgeInsets.all(AppDimensions.spacingMedium),
         child: Column(
           children: [
-          ElevatedButton.icon(
-            icon: Icon(_isScanning ? Icons.stop : Icons.search),
-            onPressed: _isScanning ? _stopScan : _startScan,
-            label: Text(_isScanning ? 'Stop Scan' : 'Scan for Devices'),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size.fromHeight(48),
+            ElevatedButton.icon(
+              icon: Icon(_isScanning ? Icons.stop : Icons.search),
+              onPressed: _isScanning ? _stopScan : _startScan,
+              label: Text(_isScanning ? 'Stop Scan' : 'Scan for Devices'),
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size.fromHeight(48),
+              ),
             ),
-          ),
-        ],
-      ),
+          ],
+        ),
       ),
     );
   }

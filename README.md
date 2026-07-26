@@ -45,12 +45,16 @@ This package manages:
 
 ## Non-goals
 
-This package is **NOT** a general-purpose BLE library. It does not replace `flutter_blue_plus`. 
-`flutter_blue_plus` remains fully responsible for:
+This package focuses **strictly on the Connection Lifecycle**. It is **NOT** a general-purpose BLE library. It does not wrap or replace `flutter_blue_plus`. 
+
+To prevent scope creep, we will **NOT** add features for:
 - Scanning for devices.
-- Reading and writing characteristics.
-- Subscribing to notifications.
-- Descriptors management.
+- Reading/Writing characteristics or Write Queues.
+- OTA (Over-the-Air) updates.
+- Protocol parsing.
+- Auto MTU negotiation (do it in `onSetup`).
+
+`flutter_blue_plus` remains fully responsible for all underlying BLE transport.
 
 ## Installation
 
@@ -69,15 +73,21 @@ dependencies:
 final manager = BleConnectionManager(
   device: myBluetoothDevice,
   config: ConnectionConfig(
-    timeout: const Duration(seconds: 15),
+    autoReconnect: true,
     recoveryPolicy: RecoveryPolicy.exponentialBackoff(maxAttempts: 3),
+    onSetup: (device, token) async {
+      // 2. Discover services & subscribe to characteristics BEFORE the connection is marked "ready"
+      final services = await device.discoverServices();
+      final characteristic = _findCharacteristic(services);
+      await characteristic.setNotifyValue(true);
+    }
   ),
 );
 
-// 2. Await the connection. It ONLY resolves when fully ready.
+// 3. Await the connection. It ONLY resolves when fully connected AND setup is complete.
 await manager.connect();
 
-// 3. The device is now ready. Use flutter_blue_plus directly.
+// 4. The device is now ready. Use flutter_blue_plus directly.
 await characteristic.write([0x01]);
 ```
 
@@ -115,6 +125,13 @@ final manager = BleConnectionManager(
 
 If anything within `onSetup` fails, the manager's `RecoveryPolicy` will automatically retry the entire connection flow.
 
+## Which Stream Should I Listen To?
+
+The manager exposes two streams. It is critical to use them correctly:
+
+- **`manager.stateStream` (For UI)**: Emits high-level states (`disconnected`, `connecting`, `ready`, `disconnecting`). Use this to drive your UI (e.g., show a loading spinner, or enable a button).
+- **`manager.events` (For Logs/Analytics)**: Emits granular milestones (`ConnectionAttemptStarted`, `SetupFailed`, `RetryScheduled`). Use this for Crashlytics, debugging, or analytics. **Do NOT use this to drive UI state.**
+
 ## API Overview
 
 | Class                | Responsibility      |
@@ -146,7 +163,6 @@ The `example/` folder in this repository serves as **Executable Documentation**.
 
 - Structured logging.
 - Heartbeat extension (application-level ping).
-- RSSI monitoring.
 
 ## Contributing
 

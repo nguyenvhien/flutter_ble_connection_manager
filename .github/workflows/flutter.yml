@@ -1,0 +1,45 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version-file: pubspec.yaml
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Format project source
+        run: dart format . --set-exit-if-changed
+
+      - name: Analyze project source
+        run: dart analyze
+
+      - name: Run Package tests
+        run: flutter test
+
+      - name: Install Example dependencies
+        run: cd example && flutter pub get
+
+      - name: Format Example source
+        run: cd example && dart format . --set-exit-if-changed
+
+      - name: Analyze Example source
+        run: cd example && dart analyze
+
+      - name: Run Example tests
+        run: cd example && flutter test

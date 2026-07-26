@@ -10,7 +10,7 @@ class DeviceSelector extends StatefulWidget {
   final bool isMockMode;
 
   const DeviceSelector({
-    super.key, 
+    super.key,
     required this.onDeviceSelected,
     required this.isMockMode,
   });
@@ -41,11 +41,26 @@ class _DeviceSelectorState extends State<DeviceSelector> {
         setState(() {
           _isScanning = false;
           _discoveredDevices.addAll([
-            MockBluetoothDevice(const fbp.DeviceIdentifier('00:1A:7D:DA:71:13'), 'Smart Thermostat V2'),
-            MockBluetoothDevice(const fbp.DeviceIdentifier('F4:5E:AB:12:34:56'), 'Fitness Tracker Pro'),
-            MockBluetoothDevice(const fbp.DeviceIdentifier('08:D1:F9:C3:4A:2B'), 'Bluetooth Speaker X1'),
-            MockBluetoothDevice(const fbp.DeviceIdentifier('9C:F3:87:A1:B2:C3'), 'Heart Rate Monitor'),
-            MockBluetoothDevice(const fbp.DeviceIdentifier('A4:C1:38:F4:D5:E6'), 'Smart Lock Alpha'),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('00:1A:7D:DA:71:13'),
+              'Smart Thermostat V2',
+            ),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('F4:5E:AB:12:34:56'),
+              'Fitness Tracker Pro',
+            ),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('08:D1:F9:C3:4A:2B'),
+              'Bluetooth Speaker X1',
+            ),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('9C:F3:87:A1:B2:C3'),
+              'Heart Rate Monitor',
+            ),
+            MockBluetoothDevice(
+              const fbp.DeviceIdentifier('A4:C1:38:F4:D5:E6'),
+              'Smart Lock Alpha',
+            ),
           ]);
         });
       });
@@ -63,17 +78,21 @@ class _DeviceSelectorState extends State<DeviceSelector> {
       _isScanning = true;
       _discoveredDevices.clear();
     });
-    
+
     _scanSub = fbp.FlutterBluePlus.scanResults.listen((results) {
       if (!mounted) return;
       setState(() {
         _discoveredDevices.clear();
-        _discoveredDevices.addAll(results.where((r) => r.device.advName.isNotEmpty).map((r) => r.device));
+        _discoveredDevices.addAll(
+          results
+              .where((r) => r.device.advName.isNotEmpty)
+              .map((r) => r.device),
+        );
       });
     });
 
     await fbp.FlutterBluePlus.startScan(timeout: const Duration(seconds: 5));
-    
+
     if (mounted) {
       setState(() {
         _isScanning = false;
@@ -99,11 +118,16 @@ class _DeviceSelectorState extends State<DeviceSelector> {
           padding: EdgeInsets.all(AppDimensions.spacingMedium),
           child: Text(
             'Prerequisite: Select a device',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: AppDimensions.fontMedium),
+            style: TextStyle(
+              color: AppColors.textSecondary,
+              fontSize: AppDimensions.fontMedium,
+            ),
           ),
         ),
         Padding(
-          padding: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingMedium),
+          padding: const EdgeInsets.symmetric(
+            horizontal: AppDimensions.spacingMedium,
+          ),
           child: ElevatedButton.icon(
             icon: Icon(_isScanning ? Icons.stop : Icons.search),
             onPressed: _isScanning ? _stopScan : _startScan,
@@ -120,21 +144,44 @@ class _DeviceSelectorState extends State<DeviceSelector> {
             itemBuilder: (context, index) {
               final device = _discoveredDevices[index];
               final isMock = device is MockBluetoothDevice;
-              final description = isMock ? mockDescriptions[device.advName] : null;
+              final description = isMock
+                  ? mockDescriptions[device.advName]
+                  : null;
 
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingMedium, vertical: 4),
+                margin: const EdgeInsets.symmetric(
+                  horizontal: AppDimensions.spacingMedium,
+                  vertical: 4,
+                ),
                 child: isMock && description != null
                     ? Theme(
-                        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+                        data: Theme.of(
+                          context,
+                        ).copyWith(dividerColor: Colors.transparent),
                         child: ExpansionTile(
-                          leading: const Icon(Icons.bluetooth, color: AppColors.highlight),
-                          title: Text(device.advName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                          subtitle: Text(device.remoteId.str, style: const TextStyle(fontSize: 12)),
+                          leading: const Icon(
+                            Icons.bluetooth,
+                            color: AppColors.highlight,
+                          ),
+                          title: Text(
+                            device.advName,
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          subtitle: Text(
+                            device.remoteId.str,
+                            style: const TextStyle(fontSize: 12),
+                          ),
                           children: [
                             Padding(
-                              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                              child: Text(description, style: const TextStyle(color: AppColors.textSecondary)),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16.0,
+                              ),
+                              child: Text(
+                                description,
+                                style: const TextStyle(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
                             ),
                             Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -153,9 +200,18 @@ class _DeviceSelectorState extends State<DeviceSelector> {
                         ),
                       )
                     : ListTile(
-                        leading: const Icon(Icons.bluetooth, color: AppColors.highlight),
-                        title: Text(device.advName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Text(device.remoteId.str, style: const TextStyle(fontSize: 12)),
+                        leading: const Icon(
+                          Icons.bluetooth,
+                          color: AppColors.highlight,
+                        ),
+                        title: Text(
+                          device.advName,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Text(
+                          device.remoteId.str,
+                          style: const TextStyle(fontSize: 12),
+                        ),
                         trailing: ElevatedButton(
                           onPressed: () {
                             _stopScan();
@@ -167,7 +223,7 @@ class _DeviceSelectorState extends State<DeviceSelector> {
               );
             },
           ),
-        )
+        ),
       ],
     );
   }

@@ -20,8 +20,11 @@ import 'dart:async';
 class LifecycleSerializer {
   Future<void>? _currentOperation;
 
-  /// Active deduplication futures, keyed by operation name.
-  final Map<String, Future<void>> _dedupedOperations = {};
+  /// The key of the last operation added to the queue (if deduped).
+  String? _lastKey;
+
+  /// The future of the last operation added to the queue (if deduped).
+  Future<void>? _lastFuture;
 
   /// Run [action] after all previous operations complete.
   ///
@@ -29,8 +32,22 @@ class LifecycleSerializer {
   /// Errors from [action] are propagated to the caller and do NOT
   /// block subsequent operations.
   Future<T> run<T>(Future<T> Function() action) async {
-    // Wait for current operation to finish (ignore its errors —
-    // they belong to the previous caller)
+    if (Zone.current[#_lifecycle_serializer] == this) {
+      throw StateError(
+          'Deadlock detected: lifecycle operation called from within another lifecycle operation.');
+    }
+
+    // We clear the dedup state if a non-deduped run is called.
+    _lastKey = null;
+    _lastFuture = null;
+
+    return runZoned(
+      () => _runInternal(action),
+      zoneValues: {#_lifecycle_serializer: this},
+    );
+  }
+
+  Future<T> _runInternal<T>(Future<T> Function() action) async {
     while (_currentOperation != null) {
       try {
         await _currentOperation;
@@ -53,21 +70,40 @@ class LifecycleSerializer {
 
   /// Run [action] with deduplication.
   ///
-  /// If an operation with the same [key] is already running,
+  /// If an operation with the same [key] was the LAST operation queued,
   /// returns the existing Future without starting a new operation.
-  /// This is used to deduplicate concurrent [connect] calls.
+  /// This prevents `connect -> disconnect -> connect` from deduplicating
+  /// the second connect to the first one.
   Future<void> runDeduped(
     String key,
     Future<void> Function() action,
   ) {
-    final existing = _dedupedOperations[key];
-    if (existing != null) return existing;
+    if (Zone.current[#_lifecycle_serializer] == this) {
+      throw StateError(
+          'Deadlock detected: lifecycle operation called from within another lifecycle operation.');
+    }
 
-    final future = run(action).whenComplete(() {
-      _dedupedOperations.remove(key);
-    });
+    if (_lastKey == key && _lastFuture != null) {
+      return _lastFuture!;
+    }
 
-    _dedupedOperations[key] = future;
+    final future = runZoned(
+      () => _runInternal(action),
+      zoneValues: {#_lifecycle_serializer: this},
+    );
+    _lastKey = key;
+    _lastFuture = future;
+
+    // Once this specific future completes, if it's still the last one, we clear it.
+    // This allows subsequent identical keys to run again after completion.
+    future.whenComplete(() {
+      if (_lastFuture == future) {
+        _lastKey = null;
+        _lastFuture = null;
+      }
+    }).catchError(
+        (_) {}); // Prevent unhandled error from the whenComplete branch
+
     return future;
   }
 }

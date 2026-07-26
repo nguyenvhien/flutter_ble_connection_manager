@@ -46,7 +46,8 @@ class _DeviceConnectionCardState extends State<DeviceConnectionCard> {
         }
       } else if (event is ConnectionFailed) {
         setState(() => _lastError = event.error.toString());
-      } else if (event is Disconnected && event.reason != BleDisconnectReason.userInitiated) {
+      } else if (event is Disconnected &&
+          event.reason != BleDisconnectReason.userInitiated) {
         setState(() => _lastError = 'Disconnected: ${event.reason.name}');
       }
     });
@@ -73,25 +74,37 @@ class _DeviceConnectionCardState extends State<DeviceConnectionCard> {
     final isReady = _currentState == BleConnectionState.ready;
 
     return Card(
-      margin: const EdgeInsets.symmetric(horizontal: AppDimensions.spacingMedium, vertical: 4),
+      margin: const EdgeInsets.symmetric(
+        horizontal: AppDimensions.spacingMedium,
+        vertical: 4,
+      ),
       clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildHeader(),
-          
+
           if (_lastError != null)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Text(_lastError!, style: const TextStyle(color: AppColors.error, fontSize: 12)),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
+              child: Text(
+                _lastError!,
+                style: const TextStyle(color: AppColors.error, fontSize: 12),
+              ),
             ),
 
           if (_currentState != BleConnectionState.disconnected)
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 16.0,
+                vertical: 8.0,
+              ),
               child: StateCard(state: _currentState),
             ),
-            
+
           if (isReady)
             Container(
               color: AppColors.surfaceHighlight,
@@ -104,7 +117,11 @@ class _DeviceConnectionCardState extends State<DeviceConnectionCard> {
                       label: const Text('Read Config'),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Read triggered for ${widget.device.advName}')),
+                          SnackBar(
+                            content: Text(
+                              'Read triggered for ${widget.device.advName}',
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -116,7 +133,11 @@ class _DeviceConnectionCardState extends State<DeviceConnectionCard> {
                       label: const Text('Send Data'),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text('Write triggered for ${widget.device.advName}')),
+                          SnackBar(
+                            content: Text(
+                              'Write triggered for ${widget.device.advName}',
+                            ),
+                          ),
                         );
                       },
                     ),
@@ -131,27 +152,50 @@ class _DeviceConnectionCardState extends State<DeviceConnectionCard> {
 
   Widget _buildHeader() {
     final isReady = _currentState == BleConnectionState.ready;
-    final isBusy = _currentState != BleConnectionState.disconnected && _currentState != BleConnectionState.ready;
+    final isBusy =
+        _currentState != BleConnectionState.disconnected &&
+        _currentState != BleConnectionState.ready;
     final isMock = widget.device is MockBluetoothDevice;
     final description = isMock ? mockDescriptions[widget.device.advName] : null;
 
     final leadingIcon = Icon(
-      Icons.bluetooth, 
-      color: isReady ? AppColors.success : (_currentState != BleConnectionState.disconnected ? AppColors.highlight : AppColors.textMuted),
+      Icons.bluetooth,
+      color: isReady
+          ? AppColors.success
+          : (_currentState != BleConnectionState.disconnected
+                ? AppColors.highlight
+                : AppColors.textMuted),
     );
 
-    final title = Text(widget.device.advName.isNotEmpty ? widget.device.advName : 'Unknown Device', style: const TextStyle(fontWeight: FontWeight.bold));
-    final subtitle = Text(widget.device.remoteId.str, style: const TextStyle(fontSize: 12));
+    final title = Text(
+      widget.device.advName.isNotEmpty
+          ? widget.device.advName
+          : 'Unknown Device',
+      style: const TextStyle(fontWeight: FontWeight.bold),
+    );
+    final subtitle = Text(
+      widget.device.remoteId.str,
+      style: const TextStyle(fontSize: 12),
+    );
 
     final trailingAction = Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (isBusy) const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+        if (isBusy)
+          const SizedBox(
+            width: 16,
+            height: 16,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
         if (isBusy) const SizedBox(width: 8),
         ElevatedButton(
-          onPressed: _currentState == BleConnectionState.disconnecting ? null : _toggleConnection,
+          onPressed: _currentState == BleConnectionState.disconnecting
+              ? null
+              : _toggleConnection,
           style: ElevatedButton.styleFrom(
-            backgroundColor: isReady || isBusy ? AppColors.error : AppColors.highlight,
+            backgroundColor: isReady || isBusy
+                ? AppColors.error
+                : AppColors.highlight,
             foregroundColor: AppColors.surface,
           ),
           child: Text(isReady ? 'Disconnect' : (isBusy ? 'Cancel' : 'Connect')),
@@ -169,10 +213,17 @@ class _DeviceConnectionCardState extends State<DeviceConnectionCard> {
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Text(description, style: const TextStyle(color: AppColors.textSecondary)),
+              child: Text(
+                description,
+                style: const TextStyle(color: AppColors.textSecondary),
+              ),
             ),
             Padding(
-              padding: const EdgeInsets.only(right: 16.0, bottom: 8.0, top: 8.0),
+              padding: const EdgeInsets.only(
+                right: 16.0,
+                bottom: 8.0,
+                top: 8.0,
+              ),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: trailingAction,
