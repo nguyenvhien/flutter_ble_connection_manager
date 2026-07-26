@@ -7,6 +7,8 @@
 
 A Flutter package that manages the complete BLE connection lifecycle on top of `flutter_blue_plus`.
 
+> If you already know `flutter_blue_plus`, this package only manages the connection lifecycle. You continue using `flutter_blue_plus` for scanning and characteristic operations.
+
 ## Why
 
 Handling Bluetooth Low Energy (BLE) connections in mobile applications is difficult. A successful radio connection does not mean the device is ready to use. Applications must handle timeouts, discover services, enable notifications, manage race conditions (e.g., users repeatedly pressing "Connect"), and recover from unexpected disconnections.
@@ -37,9 +39,9 @@ Android / iOS BLE
 ## Responsibilities
 
 This package manages:
-- **Strict Lifecycle State Machine**: Enforces `disconnected`, `connecting`, `ready`, and `disconnecting`.
-- **Concurrency Serialization**: Automatically deduplicates concurrent `connect()` requests and queues `disconnect()` requests to prevent race conditions.
-- **Retry & Recovery**: Built-in exponential backoff for handling transient failures.
+- **No more 'connected but not ready'**: The manager doesn't report success until your setup (discoverServices, notifications, MTU...) finishes.
+- **Safe against spam-clicks**: Users can spam the Connect button safely. Only one connection attempt is ever executed.
+- **Automatic Recovery**: Temporary BLE failures are retried automatically using exponential backoff.
 - **Cancellation**: Gracefully aborts in-flight connection attempts.
 - **Lifecycle Events**: Detailed event stream broadcasting every milestone, retry, or failure.
 
@@ -78,8 +80,12 @@ final manager = BleConnectionManager(
     onSetup: (device, token) async {
       // 2. Discover services & subscribe to characteristics BEFORE the connection is marked "ready"
       final services = await device.discoverServices();
-      final characteristic = _findCharacteristic(services);
-      await characteristic.setNotifyValue(true);
+      
+      token.throwIfCancelled();
+      
+      // TODO: 
+      // Discover your required characteristics here.
+      // Subscribe to notifications if your application needs them.
     }
   ),
 );
@@ -88,7 +94,7 @@ final manager = BleConnectionManager(
 await manager.connect();
 
 // 4. The device is now ready. Use flutter_blue_plus directly.
-await characteristic.write([0x01]);
+// await myCharacteristic.write([0x01]);
 ```
 
 ## Lifecycle Model
@@ -116,8 +122,9 @@ final manager = BleConnectionManager(
       token.throwIfCancelled(); 
       
       // 3. Enable notifications
-      final myChar = _findCharacteristic(services);
-      await myChar.setNotifyValue(true);
+      // TODO: Discover your required characteristics here.
+      // final myChar = services.first.characteristics.first;
+      // await myChar.setNotifyValue(true);
     },
   ),
 );
