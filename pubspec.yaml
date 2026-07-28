@@ -2,7 +2,7 @@ name: flutter_ble_connection_manager
 description: >-
   Reliable BLE connection lifecycle management for FlutterBluePlus —
   setup, readiness, cancellation, retries and reconnects.
-version: 0.2.0
+version: 0.2.1
 homepage: https://github.com/nguyenvhien/flutter_ble_connection_manager
 repository: https://github.com/nguyenvhien/flutter_ble_connection_manager
 
