@@ -17,6 +17,29 @@ Most production BLE applications eventually implement the same connection manage
 
 Instead of scattering `try/catch` blocks and state management across your UI, this package provides a structured, observable lifecycle manager.
 
+## When should I use this package?
+
+Use this package when your BLE app needs:
+
+- A distinction between native connected and application ready
+- Safe handling of repeated connect/disconnect calls
+- Setup cancellation
+- Automatic retry and reconnect
+- Observable lifecycle events
+
+Do not use this package if you only need basic scanning or one-off characteristic reads.
+
+## Why FlutterBluePlus 1.x?
+
+This package intentionally targets FlutterBluePlus 1.x.
+
+FlutterBluePlus 1.x provides the BLE capabilities required by this
+package while remaining suitable for projects that cannot adopt the
+commercial licensing terms introduced in FlutterBluePlus 2.x.
+
+This is a deliberate compatibility and licensing decision, not an
+outdated dependency.
+
 ## Solution
 
 `flutter_ble_connection_manager` provides a single facade that handles the connection lifecycle, concurrent operation serialization, and recovery logic. It complements `flutter_blue_plus` by managing *how* the connection is maintained, while leaving the actual BLE transport to the underlying library.
@@ -64,8 +87,7 @@ Add this to your `pubspec.yaml`:
 
 ```yaml
 dependencies:
-  flutter_ble_connection_manager:
-    path: ./path/to/flutter_ble_connection_manager
+  flutter_ble_connection_manager: ^0.2.0
 ```
 
 ## Quick Start
